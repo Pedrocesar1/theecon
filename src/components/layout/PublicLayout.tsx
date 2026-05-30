@@ -1,6 +1,7 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 
-export function PublicLayout() {
+export function PublicLayout({ children }: { children?: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navLink = (to: string, label: string) => {
     const active = pathname === to || pathname.startsWith(to + "/");
@@ -37,7 +38,7 @@ export function PublicLayout() {
       </header>
 
       <main className="flex-1">
-        <Outlet />
+        {children ?? <Outlet />}
       </main>
 
       <footer className="border-t border-[var(--editorial-rule)] mt-16">
