@@ -14,7 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      columns: {
+        Row: {
+          category: string | null
+          content_html: string | null
+          cover_url: string | null
+          created_at: string
+          id: string
+          inline_assets: Json
+          published_at: string | null
+          slug: string
+          status: Database["public"]["Enums"]["content_status"]
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          content_html?: string | null
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          inline_assets?: Json
+          published_at?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["content_status"]
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          content_html?: string | null
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          inline_assets?: Json
+          published_at?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["content_status"]
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      indexes: {
+        Row: {
+          classification_method: Database["public"]["Enums"]["classification_method"]
+          color_scheme: string
+          created_at: string
+          data: Json
+          description: string | null
+          id: string
+          level: Database["public"]["Enums"]["geo_level"]
+          methodology: string | null
+          n_classes: number
+          name: string
+          published_at: string | null
+          slug: string
+          status: Database["public"]["Enums"]["content_status"]
+          unit_label: string | null
+          updated_at: string
+          variables: Json
+        }
+        Insert: {
+          classification_method?: Database["public"]["Enums"]["classification_method"]
+          color_scheme?: string
+          created_at?: string
+          data?: Json
+          description?: string | null
+          id?: string
+          level: Database["public"]["Enums"]["geo_level"]
+          methodology?: string | null
+          n_classes?: number
+          name: string
+          published_at?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["content_status"]
+          unit_label?: string | null
+          updated_at?: string
+          variables?: Json
+        }
+        Update: {
+          classification_method?: Database["public"]["Enums"]["classification_method"]
+          color_scheme?: string
+          created_at?: string
+          data?: Json
+          description?: string | null
+          id?: string
+          level?: Database["public"]["Enums"]["geo_level"]
+          methodology?: string | null
+          n_classes?: number
+          name?: string
+          published_at?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["content_status"]
+          unit_label?: string | null
+          updated_at?: string
+          variables?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +124,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      classification_method: "equal_intervals" | "jenks"
+      content_status: "draft" | "published"
+      geo_level: "state" | "municipality"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +253,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      classification_method: ["equal_intervals", "jenks"],
+      content_status: ["draft", "published"],
+      geo_level: ["state", "municipality"],
+    },
   },
 } as const
