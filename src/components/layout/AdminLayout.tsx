@@ -4,11 +4,16 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import type { ReactNode } from "react";
 
-const items = [
+const items: ReadonlyArray<{
+  to: "/admin" | "/admin/colunas" | "/admin/indices";
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+}> = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/colunas", label: "Colunas", icon: FileText },
   { to: "/admin/indices", label: "Índices", icon: BarChart3 },
-] as const;
+];
 
 export function AdminLayout({ children }: { children?: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
