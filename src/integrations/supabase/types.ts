@@ -66,7 +66,9 @@ export type Database = {
           created_at: string
           data: Json
           description: string | null
+          geojson_url: string | null
           id: string
+          join_key: string | null
           level: Database["public"]["Enums"]["geo_level"]
           methodology: string | null
           n_classes: number
@@ -84,7 +86,9 @@ export type Database = {
           created_at?: string
           data?: Json
           description?: string | null
+          geojson_url?: string | null
           id?: string
+          join_key?: string | null
           level: Database["public"]["Enums"]["geo_level"]
           methodology?: string | null
           n_classes?: number
@@ -102,7 +106,9 @@ export type Database = {
           created_at?: string
           data?: Json
           description?: string | null
+          geojson_url?: string | null
           id?: string
+          join_key?: string | null
           level?: Database["public"]["Enums"]["geo_level"]
           methodology?: string | null
           n_classes?: number
