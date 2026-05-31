@@ -91,7 +91,8 @@ export function buildScale(
 
   let colors: string[];
   try {
-    colors = chroma.scale(scheme).colors(nClasses);
+    // chroma-js typings restrict scale() to brewer palette names; cast for flexibility
+    colors = chroma.scale(scheme as never).colors(nClasses);
   } catch {
     colors = chroma.scale("Viridis").colors(nClasses);
   }
