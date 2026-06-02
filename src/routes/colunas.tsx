@@ -69,7 +69,7 @@ function ColunasPage() {
   };
 
   const goPage = (next: number) => {
-    navigate({ search: (prev) => ({ ...prev, page: next }) });
+    navigate({ search: { q, page: next } });
   };
 
   return (
