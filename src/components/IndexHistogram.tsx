@@ -57,7 +57,7 @@ export function IndexHistogram({ values, method, nClasses, colorScheme, unitLabe
             <Tooltip
               cursor={{ fill: "rgba(0,0,0,0.04)" }}
               contentStyle={{ fontSize: 12 }}
-              formatter={(v: number) => [v, "Unidades"]}
+              formatter={(v) => [String(v), "Unidades"]}
             />
             <Bar dataKey="count">
               {bars.map((_, i) => (
