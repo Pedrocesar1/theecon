@@ -1,34 +1,18 @@
-## Diagnóstico
+## Plano
 
-Sintoma: clicar em "Nova coluna" ou "Novo índice" mostra um carregando e volta para o admin/login.
+1. **Corrigir as rotas de listagem do admin**
+   - Ajustar as rotas `admin.colunas.index` e `admin.indices.index` para não dependerem de caminho com barra final (`/admin/colunas/` e `/admin/indices/`).
+   - Isso evita que os links sejam tratados como se estivessem indo para a tela errada ou voltando para o dashboard.
 
-Causa raiz: `ColumnForm` importa `RichTextEditor` (TipTap) e `IndexWizard` importa `xlsx`, `ChoroplethMapClient` (Leaflet) e Recharts. Esses módulos quebram durante o SSR/prerender do TanStack Start. Resultado: a runtime error `SSR rendering failed` é disparada, o hidrate falha e o `_authenticated` AuthGate, sem sessão válida no momento do erro, devolve para `/admin/login`.
+2. **Tornar os botões de criação determinísticos**
+   - Trocar os links dos botões “Nova coluna” e “Novo índice” para navegação explícita via clique, usando `navigate({ to: ... })`.
+   - Aplicar nos botões do dashboard e nas telas de listagem.
 
-As páginas de edição (`/admin/colunas/$id`, `/admin/indices/$id`) sofrem do mesmo problema — só não foram testadas ainda.
+3. **Verificar se as telas novas carregam de fato**
+   - Confirmar que `/admin/colunas/new` mostra o editor.
+   - Confirmar que `/admin/indices/new` mostra o construtor de índice.
+   - Checar console e rede depois dos cliques para garantir que não há erro silencioso.
 
-Já existe no projeto o padrão correto: `src/components/ChoroplethMapClient.tsx` faz `lazy()` + guard `mounted` para evitar SSR de Leaflet. Vamos replicar.
+## Detalhes técnicos
 
-## Mudanças
-
-1. Criar `src/components/admin/ColumnFormClient.tsx`
-   - `lazy(() => import("./ColumnForm"))`
-   - Guard `useEffect(() => setMounted(true), [])`
-   - Fallback "Carregando editor…" enquanto não montado
-
-2. Criar `src/components/admin/IndexWizardClient.tsx`
-   - Mesma estrutura, envolvendo `IndexWizard`
-
-3. Trocar os imports nos 4 route files do admin:
-   - `src/routes/_authenticated/admin.colunas.new.tsx` → usa `ColumnFormClient`
-   - `src/routes/_authenticated/admin.colunas.$id.tsx` → usa `ColumnFormClient`
-   - `src/routes/_authenticated/admin.indices.new.tsx` → usa `IndexWizardClient`
-   - `src/routes/_authenticated/admin.indices.$id.tsx` → usa `IndexWizardClient`
-
-Nenhuma lógica de negócio muda; só a fronteira de carregamento dos módulos só-browser.
-
-## Verificação
-
-- Após aplicar: navegar para `/admin/colunas/new` carrega o editor TipTap sem erro.
-- Navegar para `/admin/indices/new` carrega o wizard XLSX/mapa sem erro.
-- Editar coluna/índice existente continua funcionando.
-- Console não exibe mais `SSR rendering failed`.
+O comportamento visto indica que a navegação está ficando presa/ambígua entre `/admin`, `/admin/colunas`, `/admin/indices` e as rotas `new`. A correção será focada apenas na navegação e no roteamento admin; não vou recriar telas nem trocar por dados mockados.
