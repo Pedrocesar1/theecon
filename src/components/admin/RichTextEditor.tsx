@@ -3,6 +3,10 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
+import Dropcursor from "@tiptap/extension-dropcursor";
+import Gapcursor from "@tiptap/extension-gapcursor";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,26 +23,47 @@ import {
   ImageIcon,
   Undo2,
   Redo2,
+  Underline as UnderlineIcon,
+  Strikethrough,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
 } from "lucide-react";
+import type { JSONContent } from "@tiptap/react";
 
 interface Props {
   value: string;
-  onChange: (html: string) => void;
+  jsonValue?: JSONContent | null;
+  onChange: (html: string, json: JSONContent) => void;
   onAssetUploaded?: (url: string) => void;
+  /** Used to scope inline-image uploads. If absent, caller should request creation of a draft first. */
+  columnId?: string | null;
+  requestColumnId?: () => Promise<string | null>;
 }
 
-export function RichTextEditor({ value, onChange, onAssetUploaded }: Props) {
+export function RichTextEditor({
+  value,
+  jsonValue,
+  onChange,
+  onAssetUploaded,
+  columnId,
+  requestColumnId,
+}: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3] } }),
+      Underline,
       Link.configure({ openOnClick: false, autolink: true }),
       Image.configure({ inline: false }),
       Placeholder.configure({ placeholder: "Escreva sua coluna..." }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      Dropcursor,
+      Gapcursor,
     ],
-    content: value || "",
-    onUpdate: ({ editor }) => onChange(editor.getHTML()),
+    content: jsonValue ?? value ?? "",
+    onUpdate: ({ editor }) => onChange(editor.getHTML(), editor.getJSON()),
     editorProps: {
       attributes: {
         class:
@@ -68,17 +93,38 @@ export function RichTextEditor({ value, onChange, onAssetUploaded }: Props) {
   };
 
   const uploadInlineImage = async (file: File) => {
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `${crypto.randomUUID()}.${ext}`;
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      toast.error("Formato inválido. Use JPEG, PNG ou WebP.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Imagem maior que 5MB.");
+      return;
+    }
+    let cid = columnId ?? null;
+    if (!cid && requestColumnId) {
+      cid = await requestColumnId();
+    }
+    if (!cid) {
+      toast.error("Salve um rascunho antes de inserir imagens.");
+      return;
+    }
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `columns/${cid}/${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage
       .from("inline-images")
       .upload(path, file, { cacheControl: "31536000", upsert: false });
     if (error) {
-      toast.error("Falha no upload da imagem");
+      toast.error(`Falha no upload: ${error.message}`);
       return;
     }
     const { data } = supabase.storage.from("inline-images").getPublicUrl(path);
-    editor.chain().focus().setImage({ src: data.publicUrl, alt: file.name }).run();
+    editor
+      .chain()
+      .focus()
+      .setImage({ src: data.publicUrl, alt: file.name, title: file.name })
+      .run();
     onAssetUploaded?.(data.publicUrl);
     toast.success("Imagem inserida");
   };
@@ -100,6 +146,14 @@ export function RichTextEditor({ value, onChange, onAssetUploaded }: Props) {
         <button type="button" className={btn(editor.isActive("italic"))}
           onClick={() => editor.chain().focus().toggleItalic().run()}>
           <Italic className="h-4 w-4" />
+        </button>
+        <button type="button" className={btn(editor.isActive("underline"))}
+          onClick={() => editor.chain().focus().toggleUnderline().run()}>
+          <UnderlineIcon className="h-4 w-4" />
+        </button>
+        <button type="button" className={btn(editor.isActive("strike"))}
+          onClick={() => editor.chain().focus().toggleStrike().run()}>
+          <Strikethrough className="h-4 w-4" />
         </button>
         <span className="w-px h-5 bg-border mx-1" />
         <button type="button" className={btn(editor.isActive("heading", { level: 2 }))}
@@ -124,6 +178,19 @@ export function RichTextEditor({ value, onChange, onAssetUploaded }: Props) {
           <Quote className="h-4 w-4" />
         </button>
         <span className="w-px h-5 bg-border mx-1" />
+        <button type="button" className={btn(editor.isActive({ textAlign: "left" }))}
+          onClick={() => editor.chain().focus().setTextAlign("left").run()}>
+          <AlignLeft className="h-4 w-4" />
+        </button>
+        <button type="button" className={btn(editor.isActive({ textAlign: "center" }))}
+          onClick={() => editor.chain().focus().setTextAlign("center").run()}>
+          <AlignCenter className="h-4 w-4" />
+        </button>
+        <button type="button" className={btn(editor.isActive({ textAlign: "right" }))}
+          onClick={() => editor.chain().focus().setTextAlign("right").run()}>
+          <AlignRight className="h-4 w-4" />
+        </button>
+        <span className="w-px h-5 bg-border mx-1" />
         <button type="button" className={btn(editor.isActive("link"))} onClick={addLink}>
           <LinkIcon className="h-4 w-4" />
         </button>
@@ -146,7 +213,7 @@ export function RichTextEditor({ value, onChange, onAssetUploaded }: Props) {
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
