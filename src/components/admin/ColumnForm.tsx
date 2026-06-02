@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { CoverUpload } from "./CoverUpload";
 import { slugify } from "@/lib/slug";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import type { JSONContent } from "@tiptap/react";
 
 type Column = Database["public"]["Tables"]["columns"]["Row"];
 type Status = Database["public"]["Enums"]["content_status"];
@@ -30,15 +31,59 @@ export function ColumnForm({ initial }: Props) {
   const [category, setCategory] = useState(initial?.category ?? "");
   const [coverUrl, setCoverUrl] = useState<string | null>(initial?.cover_url ?? null);
   const [contentHtml, setContentHtml] = useState(initial?.content_html ?? "");
+  const [contentJson, setContentJson] = useState<JSONContent | null>(
+    (initial?.content_json as JSONContent | null) ?? null
+  );
   const [inlineAssets, setInlineAssets] = useState<string[]>(
     Array.isArray(initial?.inline_assets) ? (initial!.inline_assets as string[]) : []
   );
   const [status, setStatus] = useState<Status>(initial?.status ?? "draft");
   const [saving, setSaving] = useState(false);
+  const [columnId, setColumnId] = useState<string | null>(initial?.id ?? null);
+  const idPromiseRef = useRef<Promise<string | null> | null>(null);
 
   useEffect(() => {
     if (!slugTouched) setSlug(slugify(title));
   }, [title, slugTouched]);
+
+  const buildPayload = (nextStatus: Status) => ({
+    title: title.trim() || "Sem título",
+    subtitle: subtitle.trim() || null,
+    slug: slug.trim() || slugify(title) || `rascunho-${Date.now()}`,
+    category: category.trim() || null,
+    cover_url: coverUrl,
+    content_html: contentHtml,
+    content_json: contentJson as unknown as Database["public"]["Tables"]["columns"]["Insert"]["content_json"],
+    inline_assets: inlineAssets,
+    status: nextStatus,
+    published_at:
+      nextStatus === "published"
+        ? initial?.published_at ?? new Date().toISOString()
+        : null,
+  });
+
+  /** Ensures a row exists in DB and returns its id. Used by inline image upload. */
+  const ensureColumnId = async (): Promise<string | null> => {
+    if (columnId) return columnId;
+    if (idPromiseRef.current) return idPromiseRef.current;
+    const p = (async () => {
+      const { data, error } = await supabase
+        .from("columns")
+        .insert(buildPayload("draft"))
+        .select("id")
+        .single();
+      if (error) {
+        toast.error(`Não consegui criar o rascunho: ${error.message}`);
+        return null;
+      }
+      setColumnId(data.id);
+      // Update URL so subsequent saves use UPDATE path. Don't navigate eagerly to avoid losing focus.
+      window.history.replaceState({}, "", `/admin/colunas/${data.id}`);
+      return data.id;
+    })();
+    idPromiseRef.current = p;
+    return p;
+  };
 
   const save = async (nextStatus: Status) => {
     if (!title.trim()) {
@@ -51,27 +96,15 @@ export function ColumnForm({ initial }: Props) {
       return;
     }
     setSaving(true);
-    const payload = {
-      title: title.trim(),
-      subtitle: subtitle.trim() || null,
-      slug: finalSlug,
-      category: category.trim() || null,
-      cover_url: coverUrl,
-      content_html: contentHtml,
-      inline_assets: inlineAssets,
-      status: nextStatus,
-      published_at:
-        nextStatus === "published"
-          ? initial?.published_at ?? new Date().toISOString()
-          : null,
-    };
+    const payload = { ...buildPayload(nextStatus), slug: finalSlug, title: title.trim() };
 
     try {
-      if (isEdit && initial) {
+      const existingId = columnId ?? initial?.id ?? null;
+      if (existingId) {
         const { error } = await supabase
           .from("columns")
           .update(payload)
-          .eq("id", initial.id);
+          .eq("id", existingId);
         if (error) throw error;
         setStatus(nextStatus);
         toast.success(nextStatus === "published" ? "Coluna publicada" : "Rascunho salvo");
@@ -82,6 +115,8 @@ export function ColumnForm({ initial }: Props) {
           .select("id")
           .single();
         if (error) throw error;
+        setColumnId(data.id);
+        setStatus(nextStatus);
         toast.success(nextStatus === "published" ? "Coluna publicada" : "Rascunho criado");
         navigate({ to: "/admin/colunas/$id", params: { id: data.id } });
       }
@@ -146,7 +181,13 @@ export function ColumnForm({ initial }: Props) {
             <Label>Conteúdo</Label>
             <RichTextEditor
               value={contentHtml}
-              onChange={setContentHtml}
+              jsonValue={contentJson}
+              columnId={columnId}
+              requestColumnId={ensureColumnId}
+              onChange={(html, json) => {
+                setContentHtml(html);
+                setContentJson(json);
+              }}
               onAssetUploaded={(url) =>
                 setInlineAssets((prev) => (prev.includes(url) ? prev : [...prev, url]))
               }
