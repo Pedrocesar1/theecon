@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, GeoJSON, Tooltip } from "react-leaflet";
 import type { Feature, FeatureCollection, GeoJsonObject } from "geojson";
 import type { Layer, PathOptions } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { buildScale, type ClassMethod } from "@/lib/classify";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 export interface ChoroplethRow {
   code: string;
@@ -20,6 +22,7 @@ interface Props {
   method: ClassMethod;
   unitLabel?: string | null;
   height?: number | string;
+  exportFileName?: string;
 }
 
 function getFeatureKey(feature: Feature, key: string): string | undefined {
@@ -38,9 +41,34 @@ export default function ChoroplethMap({
   method,
   unitLabel,
   height = 520,
+  exportFileName = "mapa",
 }: Props) {
   const [geo, setGeo] = useState<FeatureCollection | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const mapWrapperRef = useRef<HTMLDivElement | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportPng = async () => {
+    if (!mapWrapperRef.current) return;
+    setExporting(true);
+    try {
+      const { default: html2canvas } = await import("html2canvas");
+      const canvas = await html2canvas(mapWrapperRef.current, {
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        // Skip tiles since most providers reject CORS; vector layers still render.
+        ignoreElements: (el) =>
+          el instanceof HTMLElement && el.classList.contains("leaflet-tile-pane"),
+      });
+      const url = canvas.toDataURL("image/png");
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${exportFileName}.png`;
+      a.click();
+    } finally {
+      setExporting(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -126,7 +154,19 @@ export default function ChoroplethMap({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-md overflow-hidden border" style={{ height }}>
+      <div className="flex items-center justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleExportPng}
+          disabled={exporting}
+        >
+          <Download className="h-4 w-4 mr-1" />
+          {exporting ? "Exportando..." : "Baixar PNG"}
+        </Button>
+      </div>
+      <div ref={mapWrapperRef} className="rounded-md overflow-hidden border bg-white" style={{ height }}>
         <MapContainer
           style={{ height: "100%", width: "100%" }}
           center={[-14.5, -52]}
