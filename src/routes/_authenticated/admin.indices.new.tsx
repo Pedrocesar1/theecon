@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { IndexWizard } from "@/components/admin/IndexWizard";
+import { IndexWizardClient } from "@/components/admin/IndexWizardClient";
 
 export const Route = createFileRoute("/_authenticated/admin/indices/new")({
-  component: () => <IndexWizard />,
+  component: () => <IndexWizardClient />,
 });
