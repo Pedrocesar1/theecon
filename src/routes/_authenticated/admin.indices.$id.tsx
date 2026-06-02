@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { IndexForm } from "@/components/admin/IndexForm";
+import { IndexWizard } from "@/components/admin/IndexWizard";
 
 export const Route = createFileRoute("/_authenticated/admin/indices/$id")({
   component: EditIndex,
@@ -28,5 +28,5 @@ function EditIndex() {
   if (error || !data) {
     return <div className="text-destructive">Índice não encontrado.</div>;
   }
-  return <IndexForm initial={data} />;
+  return <IndexWizard initial={data} />;
 }
