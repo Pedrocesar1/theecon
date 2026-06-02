@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { ChoroplethMapClient } from "@/components/ChoroplethMapClient";
@@ -14,14 +14,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { IndexHistogram } from "@/components/IndexHistogram";
 
-export const Route = createFileRoute("/indices/$slug")({
-  component: IndiceDetail,
-});
-
-function IndiceDetail() {
-  const { slug } = Route.useParams();
-  const { data, isLoading, error } = useQuery({
+const indexQueryOptions = (slug: string) =>
+  queryOptions({
     queryKey: ["public", "index", slug],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -35,17 +31,44 @@ function IndiceDetail() {
     },
   });
 
-  if (isLoading) {
-    return (
-      <PublicLayout>
-        <div className="max-w-5xl mx-auto px-4 py-12 text-muted-foreground">
-          Carregando...
-        </div>
-      </PublicLayout>
-    );
-  }
+export const Route = createFileRoute("/indices/$slug")({
+  loader: ({ context, params }) =>
+    context.queryClient.ensureQueryData(indexQueryOptions(params.slug)),
+  head: ({ loaderData, params }) => {
+    const title = loaderData?.name
+      ? `${loaderData.name} | The Econ`
+      : "Índice | The Econ";
+    const description =
+      loaderData?.description ??
+      "Índice econômico interativo do The Econ.";
+    const url = `https://theecon.lovable.app/indices/${params.slug}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: url },
+      ],
+    };
+  },
+  component: IndiceDetail,
+  errorComponent: ({ error }) => (
+    <PublicLayout>
+      <div className="max-w-5xl mx-auto px-4 py-12">
+        <h1 className="font-serif text-3xl">Erro ao carregar índice</h1>
+        <p className="text-muted-foreground mt-2">{error.message}</p>
+      </div>
+    </PublicLayout>
+  ),
+});
 
-  if (error || !data) {
+function IndiceDetail() {
+  const { slug } = Route.useParams();
+  const { data } = useSuspenseQuery(indexQueryOptions(slug));
+
+  if (!data) {
     return (
       <PublicLayout>
         <div className="max-w-5xl mx-auto px-4 py-12">
@@ -60,6 +83,7 @@ function IndiceDetail() {
 
   const rows = (Array.isArray(data.data) ? (data.data as unknown as IndexRow[]) : []);
   const sorted = [...rows].sort((a, b) => b.value - a.value);
+  const values = rows.map((r) => r.value).filter((v) => Number.isFinite(v));
 
   return (
     <PublicLayout>
@@ -86,16 +110,28 @@ function IndiceDetail() {
 
           <TabsContent value="map" className="pt-4">
             {data.geojson_url ? (
-              <ChoroplethMapClient
-                geojsonUrl={data.geojson_url}
-                joinKey={data.join_key ?? "code"}
-                rows={rows}
-                colorScheme={data.color_scheme}
-                nClasses={data.n_classes}
-                method={data.classification_method as ClassMethod}
-                unitLabel={data.unit_label}
-                height={600}
-              />
+              <div className="space-y-4">
+                <ChoroplethMapClient
+                  geojsonUrl={data.geojson_url}
+                  joinKey={data.join_key ?? "code"}
+                  rows={rows}
+                  colorScheme={data.color_scheme}
+                  nClasses={data.n_classes}
+                  method={data.classification_method as ClassMethod}
+                  unitLabel={data.unit_label}
+                  height={600}
+                  exportFileName={data.slug}
+                />
+                {values.length > 0 && (
+                  <IndexHistogram
+                    values={values}
+                    method={data.classification_method as ClassMethod}
+                    nClasses={data.n_classes}
+                    colorScheme={data.color_scheme}
+                    unitLabel={data.unit_label}
+                  />
+                )}
+              </div>
             ) : (
               <p className="text-muted-foreground">Mapa indisponível.</p>
             )}
