@@ -527,7 +527,7 @@ export function IndexWizard({ initial }: Props) {
               <div className="border rounded-md p-4 bg-card">
                 <IndexHistogram
                   values={indexData.map((d) => d.value).filter((v): v is number => v != null)}
-                  scheme={colorScheme}
+                  colorScheme={colorScheme}
                   nClasses={nClasses}
                   method={classMethod}
                 />
