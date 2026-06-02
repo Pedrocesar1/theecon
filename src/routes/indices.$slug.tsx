@@ -3,8 +3,16 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { ChoroplethMapClient } from "@/components/ChoroplethMapClient";
-import type { IndexRow } from "@/components/admin/IndexDataInput";
 import type { ClassMethod } from "@/lib/classify";
+
+type IndexRow = { code: string; name?: string | null; value: number };
+type RawRow = {
+  ibge_code?: string;
+  code?: string;
+  ibge_name?: string | null;
+  name?: string | null;
+  value: number | null;
+};
 import {
   Table,
   TableBody,
@@ -81,7 +89,14 @@ function IndiceDetail() {
     );
   }
 
-  const rows = (Array.isArray(data.data) ? (data.data as unknown as IndexRow[]) : []);
+  const raw = (Array.isArray(data.data) ? (data.data as unknown as RawRow[]) : []);
+  const rows: IndexRow[] = raw
+    .filter((r) => r.value != null && Number.isFinite(r.value))
+    .map((r) => ({
+      code: (r.ibge_code ?? r.code ?? "") as string,
+      name: r.ibge_name ?? r.name ?? null,
+      value: r.value as number,
+    }));
   const sorted = [...rows].sort((a, b) => b.value - a.value);
   const values = rows.map((r) => r.value).filter((v) => Number.isFinite(v));
 
