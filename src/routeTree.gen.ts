@@ -17,6 +17,7 @@ import { Route as IndicesSlugRouteImport } from './routes/indices.$slug'
 import { Route as ColunasSlugRouteImport } from './routes/colunas.$slug'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminIndicesIndexRouteImport } from './routes/_authenticated/admin.indices.index'
 import { Route as AuthenticatedAdminColunasIndexRouteImport } from './routes/_authenticated/admin.colunas.index'
 import { Route as AuthenticatedAdminIndicesNewRouteImport } from './routes/_authenticated/admin.indices.new'
@@ -63,6 +64,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminIndicesIndexRoute =
   AuthenticatedAdminIndicesIndexRouteImport.update({
     id: '/indices/',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/colunas/$slug': typeof ColunasSlugRoute
   '/indices/$slug': typeof IndicesSlugRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/colunas/$id': typeof AuthenticatedAdminColunasIdRoute
   '/admin/colunas/new': typeof AuthenticatedAdminColunasNewRoute
   '/admin/indices/$id': typeof AuthenticatedAdminIndicesIdRoute
@@ -119,10 +126,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/colunas': typeof ColunasRouteWithChildren
   '/indices': typeof IndicesRouteWithChildren
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/colunas/$slug': typeof ColunasSlugRoute
   '/indices/$slug': typeof IndicesSlugRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/colunas/$id': typeof AuthenticatedAdminColunasIdRoute
   '/admin/colunas/new': typeof AuthenticatedAdminColunasNewRoute
   '/admin/indices/$id': typeof AuthenticatedAdminIndicesIdRoute
@@ -140,6 +147,7 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/colunas/$slug': typeof ColunasSlugRoute
   '/indices/$slug': typeof IndicesSlugRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/colunas/$id': typeof AuthenticatedAdminColunasIdRoute
   '/_authenticated/admin/colunas/new': typeof AuthenticatedAdminColunasNewRoute
   '/_authenticated/admin/indices/$id': typeof AuthenticatedAdminIndicesIdRoute
@@ -157,6 +165,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/colunas/$slug'
     | '/indices/$slug'
+    | '/admin/'
     | '/admin/colunas/$id'
     | '/admin/colunas/new'
     | '/admin/indices/$id'
@@ -168,10 +177,10 @@ export interface FileRouteTypes {
     | '/'
     | '/colunas'
     | '/indices'
-    | '/admin'
     | '/admin/login'
     | '/colunas/$slug'
     | '/indices/$slug'
+    | '/admin'
     | '/admin/colunas/$id'
     | '/admin/colunas/new'
     | '/admin/indices/$id'
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/colunas/$slug'
     | '/indices/$slug'
+    | '/_authenticated/admin/'
     | '/_authenticated/admin/colunas/$id'
     | '/_authenticated/admin/colunas/new'
     | '/_authenticated/admin/indices/$id'
@@ -262,6 +272,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/indices/': {
       id: '/_authenticated/admin/indices/'
       path: '/indices'
@@ -308,6 +325,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminColunasIdRoute: typeof AuthenticatedAdminColunasIdRoute
   AuthenticatedAdminColunasNewRoute: typeof AuthenticatedAdminColunasNewRoute
   AuthenticatedAdminIndicesIdRoute: typeof AuthenticatedAdminIndicesIdRoute
@@ -317,6 +335,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminColunasIdRoute: AuthenticatedAdminColunasIdRoute,
   AuthenticatedAdminColunasNewRoute: AuthenticatedAdminColunasNewRoute,
   AuthenticatedAdminIndicesIdRoute: AuthenticatedAdminIndicesIdRoute,
