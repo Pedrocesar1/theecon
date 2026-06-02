@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           category: string | null
           content_html: string | null
+          content_json: Json | null
           cover_url: string | null
           created_at: string
           id: string
@@ -32,6 +33,7 @@ export type Database = {
         Insert: {
           category?: string | null
           content_html?: string | null
+          content_json?: Json | null
           cover_url?: string | null
           created_at?: string
           id?: string
@@ -46,6 +48,7 @@ export type Database = {
         Update: {
           category?: string | null
           content_html?: string | null
+          content_json?: Json | null
           cover_url?: string | null
           created_at?: string
           id?: string
@@ -73,6 +76,7 @@ export type Database = {
           methodology: string | null
           n_classes: number
           name: string
+          processing_config: Json | null
           published_at: string | null
           slug: string
           status: Database["public"]["Enums"]["content_status"]
@@ -93,6 +97,7 @@ export type Database = {
           methodology?: string | null
           n_classes?: number
           name: string
+          processing_config?: Json | null
           published_at?: string | null
           slug: string
           status?: Database["public"]["Enums"]["content_status"]
@@ -113,6 +118,7 @@ export type Database = {
           methodology?: string | null
           n_classes?: number
           name?: string
+          processing_config?: Json | null
           published_at?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["content_status"]

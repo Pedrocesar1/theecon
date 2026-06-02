@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { supabase } from "@/integrations/supabase/client";
+import DOMPurify from "dompurify";
+import { useMemo } from "react";
 
 const columnQueryOptions = (slug: string) =>
   queryOptions({
@@ -57,6 +59,13 @@ export const Route = createFileRoute("/colunas/$slug")({
 function ColunaDetail() {
   const { slug } = Route.useParams();
   const { data } = useSuspenseQuery(columnQueryOptions(slug));
+  const safeHtml = useMemo(() => {
+    if (!data?.content_html) return "";
+    if (typeof window === "undefined") return "";
+    return DOMPurify.sanitize(data.content_html, {
+      ADD_ATTR: ["target", "rel"],
+    });
+  }, [data?.content_html]);
 
   return (
     <PublicLayout>
@@ -107,7 +116,7 @@ function ColunaDetail() {
             )}
             <div
               className="prose-editorial"
-              dangerouslySetInnerHTML={{ __html: data.content_html ?? "" }}
+              dangerouslySetInnerHTML={{ __html: safeHtml }}
             />
           </>
         )}
