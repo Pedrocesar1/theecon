@@ -5,7 +5,7 @@ import { PublicLayout } from "@/components/layout/PublicLayout";
 import { ChoroplethMapClient } from "@/components/ChoroplethMapClient";
 import type { ClassMethod } from "@/lib/classify";
 
-type IndexRow = { code: string; name?: string | null; value: number };
+type IndexRow = { code: string; name?: string; value: number };
 type RawRow = {
   ibge_code?: string;
   code?: string;
@@ -94,7 +94,7 @@ function IndiceDetail() {
     .filter((r) => r.value != null && Number.isFinite(r.value))
     .map((r) => ({
       code: (r.ibge_code ?? r.code ?? "") as string,
-      name: r.ibge_name ?? r.name ?? null,
+      name: r.ibge_name ?? r.name ?? undefined,
       value: r.value as number,
     }));
   const sorted = [...rows].sort((a, b) => b.value - a.value);
