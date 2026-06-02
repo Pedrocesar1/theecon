@@ -86,6 +86,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Colunas e índices econômicos interativos sobre o Brasil." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "The Econ" },
+      { name: "twitter:description", content: "Colunas e índices econômicos interativos sobre o Brasil." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/66580b9a-c9e2-4845-b36c-99db0578cc14/id-preview-63c73ca8--523b2f65-b188-4f73-ad5b-d15db3a58d9f.lovable.app-1780435140451.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/66580b9a-c9e2-4845-b36c-99db0578cc14/id-preview-63c73ca8--523b2f65-b188-4f73-ad5b-d15db3a58d9f.lovable.app-1780435140451.png" },
     ],
     links: [
       {
