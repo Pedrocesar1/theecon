@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ColumnForm } from "@/components/admin/ColumnForm";
+import { ColumnFormClient } from "@/components/admin/ColumnFormClient";
 import { ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/colunas/new")({
@@ -16,7 +16,7 @@ function NewColumn() {
         <ChevronLeft className="h-4 w-4 mr-1" />
         Voltar para colunas
       </Link>
-      <ColumnForm />
+      <ColumnFormClient />
     </div>
   );
 }

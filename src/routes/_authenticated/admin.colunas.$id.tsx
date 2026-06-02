@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ColumnForm } from "@/components/admin/ColumnForm";
+import { ColumnFormClient } from "@/components/admin/ColumnFormClient";
 import { ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/colunas/$id")({
@@ -36,7 +36,7 @@ function EditColumn() {
       {error && (
         <p className="text-destructive">Erro ao carregar: {(error as Error).message}</p>
       )}
-      {data && <ColumnForm initial={data} />}
+      {data && <ColumnFormClient initial={data} />}
     </div>
   );
 }
