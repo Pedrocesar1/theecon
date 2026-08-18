@@ -198,3 +198,33 @@
     max-width: 100%;
   }
 }
+
+/* ---- Choropleth map visual layer ---- */
+.leaflet-container .theecon-poly {
+  transition:
+    fill-opacity 180ms ease,
+    stroke-width 180ms ease,
+    filter 180ms ease;
+}
+.leaflet-container .theecon-poly-hover {
+  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.35))
+    drop-shadow(0 0 4px color-mix(in oklab, var(--primary) 60%, transparent));
+}
+.leaflet-container .theecon-poly-dim {
+  fill-opacity: 0.18 !important;
+}
+.theecon-map-dark .leaflet-container {
+  background: oklch(0.16 0.02 265);
+}
+@keyframes theecon-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+.theecon-skeleton-pulse {
+  animation: theecon-skeleton-pulse 1.6s ease-in-out infinite;
+}
