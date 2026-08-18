@@ -28,7 +28,7 @@ export function MapRankingPanel({ rows, unitLabel, onSelect, activeCode }: Props
 
   const sorted = useMemo(() => [...rows].sort((a, b) => b.value - a.value), [rows]);
   const top = sorted.slice(0, 10);
-  const bottom = sorted.slice(-10).reverse();
+  const bottom = sorted.slice(-10);
 
   const results = useMemo(() => {
     if (!debounced) return null;
